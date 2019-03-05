@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Gun deaths</title>
+		<meta name="viewport" content="width = device-width, initial-scale = 1">
+		<link rel="stylesheet" href="http://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+	  <style type="text/css">
+     h4 {
+      position: absolute;
+      left: 250px;
+      top: 7px;
+    }
+
+     .tick {
+      font-size: 12px;
+     }
+     .axis path,
+     .axis line {
+      fill: none;
+      stroke: grey;
+      shape-rendering: crispEdges;
+    }
+    .axis text {
+      font-family: sans-serif;
+      font-size: 16px;
+    }
+    div.tooltip { 
+    position: absolute;     
+    text-align: left;     
+    width: 250px;          
+    height: 50px;         
+    padding: 2px;       
+    font: 12px sans-serif;   
+    background: #A8D7F3; 
+    border: 0px;    
+    border-radius: 4px;     
+    pointer-events: none;     
+    }
+    .sources{
+      font-size: 10px
+    }
+    </style>
+
+  </head>
+	<body>
+<center>
+  <h4> Do more guns mean more deaths?</h4>
+</center>
+<script src="//cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    
+    <div class="container">
+
+		<script type="text/javascript">
+    var margin = {
+            top: 70,
+            right: 20,
+            bottom: 30,
+            left: 40
+        },
+         width = 960 - margin.left - margin.right,
+        height = 600 - margin.top - margin.bottom;
+
+    var svg = d3.select('body').append("svg")
+        	.attr("width", width + margin.left + margin.right)
+        	.attr("height", height + margin.top + margin.bottom)
+        	.append("g")
+        	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+// Tooltip
+var div = d3.select("body").append('div')
+    .attr("class", "tooltip")
+    .style("opacity", 0)
+
+
+
+function render (data){
+//scales
+    var xScale = d3.scale.linear()
+             .domain([0, d3.max(data, function(d) {return d.ownership;})])
+             .range([0, width]);
+
+
+    var yScale = d3.scale.linear()
+             .domain([0, d3.max(data, function(d) {return d.death;})])
+             .range([height-margin.top,0]);
+
+  var circles = svg.selectAll("circle").data(data);
+  //generate dots
+  circles.enter().append("circle").attr("r", 4);
+  circles
+    .attr("cx", function(d){return xScale(d.ownership)})
+    .attr("cy", function(d){return yScale(d.death)})
+    .attr("fill", "#CD5C5C")
+    .on("mouseover", function(d) {   
+            d3.select(this)
+            .attr("stroke", "black")
+            .attr('opacity', .7)
+            div.transition()    
+                .duration(200)    
+                .style("opacity", .9)
+                .style("stroke", "black")
+            div.html("This is"+ " " + "<strong>" + d.state+ "</strong>" + ", where " + d3.round(d.ownership,2) + "% of people own firearms."
+                      + "</br>"+ Math.round(d.death) + " out of 100,000 people die from guns." )
+                .style("left",xScale(d.ownership) + 'px')
+                .style("top", yScale(d.death)+margin.top-20 + 'px');
+            })          
+    .on("mouseout", function(d) {   
+            d3.select(this)
+            .attr("stroke", "none")
+            .attr('opacity', 1)
+            div.transition()    
+                .duration(500)    
+                .style("opacity", 0); 
+        });;
+
+  circles.exit().remove();
+
+var xAxis = d3.svg.axis()
+    .ticks(8)
+    .tickFormat(function(d) {return d})
+    .orient("bottom")
+    .scale(xScale);
+
+var yAxis = d3.svg.axis()
+    .ticks(10)
+    .tickFormat(function(d) {return d})
+    .orient("left")
+    .scale(yScale);
+
+// x Axis
+svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + (height -margin.top) + ")")
+      .call(xAxis)
+    .append("text")
+      .attr("class", "label")
+      .attr("x", width)
+      .attr("y", -6)
+      .style("text-anchor", "end")
+      .text("Gun Ownership Rate (%)");
+
+// y-axis
+  svg.append("g")
+      .attr("class", "y axis")
+      .call(yAxis)
+      .call(g => g.select(".domain").remove())
+    .append("text")
+      .attr("class", "label")
+      .attr("transform", "rotate(-90)")
+      .attr("x",0)
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Gun Death Rate(Age-Adjusted, per 100,000)");
+
+
+}
+
+d3.csv('guns_output.csv', render)
+
+svg.append("text")
+    .text("Sources: Annual Firearms Manufacturing and Export Report (2017), Centers for Disease Control (2017)")
+    .attr("class", "sources")
+    .attr("x", 0)
+    .attr("y",height+margin.bottom - 50 )
+
+
+
+
+
+
+
+
+</script>
+
+<script src="http://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	</body>
+</html>
